@@ -164,7 +164,7 @@
                     body: JSON.stringify({ user_id: "user_session", message: userText })
                 });
                 const data = await response.json();
-                chatHistory.push({ role: 'bot', text: data.reply });
+                chatHistory.push({ role: 'bot', text: data.reply || "Backend Error: " + JSON.stringify(data) });
                 localStorage.setItem('impactChatHistory', JSON.stringify(chatHistory));
                 renderHistory();
             } catch (error) {
