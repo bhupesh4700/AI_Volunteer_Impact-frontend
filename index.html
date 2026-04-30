@@ -169,12 +169,14 @@
             if(confirm("Wipe all data?")) { localStorage.removeItem('impactChatHistory'); chatHistory = []; renderHistory(); }
         }
 
-        async function sendMessage() {
-    const inputField = document.getElementById("userInput");
+        async function sendMessage(event) {
+    if (event) event.preventDefault();
+    const inputField = document.getElementById("userInput") || document.getElementById("user-input"); 
     const userText = inputField.value.trim();
     if (!userText) return;
 
-    appendMessage("user", userText);
+    chatHistory.push({ role: 'user', text: userText });
+    renderHistory();
     inputField.value = "";
 
     const temp = parseFloat(document.getElementById("tempSlider").value);
@@ -182,7 +184,10 @@
 
     const payload = {
         message: userText,
-        history: chatHistory,
+        history: chatHistory.map(m => ({ 
+    role: m.role === 'user' ? 'user' : 'model', 
+    content: m.text 
+})),
         temperature: temp,
         top_p: 0.95,
         language: lang
