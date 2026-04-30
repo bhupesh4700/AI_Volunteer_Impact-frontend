@@ -1,225 +1,702 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Volunteer Matchmaker | Bhupesh Kumar</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade { animation: fadeIn 0.3s ease-out; }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ImpactHub - AI Volunteer Impact Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .typing-dot{animation:blink 1.4s infinite both}
+  .typing-dot:nth-child(2){animation-delay:.2s}
+  .typing-dot:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+  .toast{animation:slideIn .3s ease}
+  @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:#f1f5f9}
+  ::-webkit-scrollbar-thumb{background:#c7d2fe;border-radius:3px}
+  .star-btn{cursor:pointer;transition:color .15s}
+  .chat-bubble{max-width:80%}
+</style>
 </head>
-<body class="bg-slate-50 font-sans text-gray-800 h-screen flex overflow-hidden">
+<body class="bg-slate-100 font-sans h-screen flex flex-col overflow-hidden">
 
-    <aside class="w-[350px] bg-white border-r border-gray-200 p-6 flex flex-col justify-between hidden md:flex shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
+<!-- TOAST CONTAINER -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="fixed inset-0 bg-black bg-opacity-60 z-40 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-gray-900">ImpactHub</h1>
+        <p class="text-sm text-gray-500">AI Volunteer Impact Platform</p>
+      </div>
+    </div>
+    <div id="authError" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <input id="authName" type="text" placeholder="Jane Doe" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input id="authEmail" type="email" placeholder="jane@example.com" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Skills <span class="text-gray-400">(comma separated)</span></label>
+        <input id="authSkills" type="text" placeholder="teaching, coding, design" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Interests <span class="text-gray-400">(comma separated)</span></label>
+        <input id="authInterests" type="text" placeholder="education, environment, health" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+        <input id="authLocation" type="text" placeholder="Mumbai, India" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="doRegister()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">Register</button>
+      <button onclick="doLogin()" class="flex-1 bg-white hover:bg-gray-50 text-indigo-600 font-semibold py-2 px-4 rounded-lg border border-indigo-300 transition-colors text-sm">Login</button>
+    </div>
+    <p class="text-xs text-gray-400 text-center mt-3">Login uses email only. Register to create a new account.</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="hidden flex h-screen overflow-hidden">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 overflow-y-auto">
+    <!-- Logo -->
+    <div class="p-4 border-b border-gray-100">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <span class="font-bold text-gray-900 text-lg">ImpactHub</span>
+      </div>
+      <div id="statsBar" class="mt-2 text-xs text-gray-400"></div>
+    </div>
+
+    <!-- User Profile -->
+    <div class="p-4 border-b border-gray-100">
+      <div class="flex items-center gap-3">
+        <div id="userAvatar" class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm flex-shrink-0"></div>
+        <div class="min-w-0">
+          <div id="userName" class="font-semibold text-gray-900 text-sm truncate"></div>
+          <div class="text-xs text-indigo-500 font-medium">Volunteer</div>
+        </div>
+      </div>
+      <div class="mt-3 grid grid-cols-2 gap-2">
+        <div class="bg-indigo-50 rounded-lg p-2 text-center">
+          <div id="impactScore" class="text-lg font-bold text-indigo-600">0</div>
+          <div class="text-xs text-gray-500">Impact Score</div>
+        </div>
+        <div class="bg-green-50 rounded-lg p-2 text-center">
+          <div id="hoursLogged" class="text-lg font-bold text-green-600">0</div>
+          <div class="text-xs text-gray-500">Hours Logged</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="p-3 border-b border-gray-100">
+      <div class="space-y-1">
+        <button onclick="switchTab('chat')" id="tab-chat" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          Chat
+        </button>
+        <button onclick="switchTab('applications')" id="tab-applications" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          My Applications
+        </button>
+        <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Leaderboard
+        </button>
+      </div>
+    </nav>
+
+    <!-- AI Config -->
+    <div class="p-4 border-b border-gray-100">
+      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">AI Config</div>
+      <div class="space-y-3">
         <div>
-            <h2 class="text-2xl font-black text-indigo-600 mb-8 flex items-center gap-2 tracking-tight">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
-                ImpactHub
-            </h2>
-            
-            <div class="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl p-5 mb-6 text-white shadow-lg">
-                <div class="flex items-center gap-4 mb-5">
-                    <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex justify-center items-center text-white text-xl font-bold border border-white/30">BK</div>
-                    <div>
-                        <h3 class="font-bold text-lg leading-tight">Bhupesh Kumar</h3>
-                        <p class="text-[10px] text-indigo-100 font-bold tracking-widest uppercase opacity-80">Platform Founder</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3 mt-4">
-                    <div class="bg-white/10 backdrop-blur-md p-3 rounded-xl text-center border border-white/10">
-                        <p class="text-[9px] font-bold uppercase tracking-widest opacity-70">Impact Score</p>
-                        <p class="text-2xl font-black mt-1">450</p>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-md p-3 rounded-xl text-center border border-white/10">
-                        <p class="text-[9px] font-bold uppercase tracking-widest opacity-70">Hours Logged</p>
-                        <p class="text-2xl font-black mt-1">12.5</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- AI CONFIG SECTION -->
-            <div class="mt-6 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 shadow-inner">
-                <h4 class="font-bold text-indigo-900 mb-3 text-[10px] uppercase tracking-widest flex items-center gap-2">
-                    AI Config
-                </h4>
-                <div class="mb-3">
-                    <label class="text-[9px] font-black text-indigo-400 uppercase block mb-1">Language</label>
-                    <select id="langSelect" class="w-full p-2 rounded-xl text-xs bg-white border border-indigo-100 text-gray-700 outline-none focus:ring-2 focus:ring-indigo-400 transition-all font-bold">
-                        <option value="English">English</option>
-                        <option value="Hindi">Hindi (हिन्दी)</option>
-                        <option value="Punjabi">Punjabi (ਪੰਜਾਬੀ)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-[9px] font-black text-indigo-400 uppercase block mb-1">Creativity (Temp: <span id="tempValue" class="text-indigo-600">0.7</span>)</label>
-                    <input type="range" id="tempSlider" min="0" max="1" step="0.1" value="0.7" class="w-full h-1.5 bg-indigo-100 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('tempValue').innerText=this.value">
-                </div>
-            </div>
-
-            <div class="mt-6">
-                <h4 class="font-bold text-gray-400 mb-3 text-[11px] uppercase tracking-wider italic">Profile Focus</h4>
-                <div class="flex flex-wrap gap-2 mb-8">
-                    <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-[10px] font-black rounded-full border border-emerald-100 uppercase tracking-tighter">🌱 Environment</span>
-                    <span class="px-3 py-1.5 bg-blue-50 text-blue-700 text-[10px] font-black rounded-full border border-blue-100 uppercase tracking-tighter">📚 Education</span>
-                </div>
-            </div>
+          <label class="block text-xs text-gray-600 mb-1">Language</label>
+          <select id="langSelect" class="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="English">English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Punjabi">Punjabi</option>
+          </select>
         </div>
-        
-        <div class="bg-slate-900 text-white rounded-2xl p-4 text-[10px] font-bold flex items-center justify-between shadow-xl">
-            <span class="flex items-center gap-2">
-                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
-                AI SECURE NODE
-            </span>
-            <span class="text-slate-500">v2.4.0-STABLE</span>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Temperature: <span id="tempVal">0.7</span></label>
+          <input id="tempSlider" type="range" min="0" max="1" step="0.1" value="0.7" oninput="document.getElementById('tempVal').textContent=this.value" class="w-full accent-indigo-600" />
         </div>
-    </aside>
+      </div>
+    </div>
 
-    <main class="flex-1 flex flex-col bg-[#fdfdfd] relative">
-        <header class="bg-white/80 backdrop-blur-md border-b border-gray-100 p-4 px-6 flex items-center justify-between z-10 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex justify-center items-center text-white shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v5.25H6a.75.75 0 000 1.5h6a.75.75 0 00.75-.75V6z" /></svg>
-                </div>
-                <div>
-                    <h1 class="font-black text-gray-900 text-base tracking-tight uppercase">AI Volunteer Matchmaker</h1>
-                    <p class="text-[10px] text-emerald-500 font-black tracking-widest uppercase flex items-center gap-1">Live NGO Search Active</p>
-                </div>
+    <!-- Status -->
+    <div class="mt-auto p-4">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+        <span class="text-xs text-gray-500">AI Matchmaker Online</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- VIEW: CHAT -->
+    <div id="view-chat" class="flex flex-col h-full">
+      <!-- Chat Header -->
+      <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <h2 class="text-lg font-bold text-gray-900">AI Volunteer Matchmaker</h2>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+            <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+            Live NGO Search Active
+          </span>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="downloadChat()" class="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download
+          </button>
+          <button onclick="resetChat()" class="flex items-center gap-1 px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-4">
+        <!-- Welcome message -->
+        <div class="flex gap-3">
+          <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div class="chat-bubble bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+            <p class="text-sm text-gray-800">Hi there! I am your AI Volunteer Matchmaker. Tell me what kind of volunteering you are interested in, and I will find the best NGO opportunities for you. You can also use the quick chips below to get started!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Chips -->
+      <div class="px-6 py-2 flex gap-2 flex-wrap border-t border-gray-100 bg-white flex-shrink-0">
+        <button onclick="sendChip('Weekend Tasks')" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full transition-colors">Weekend Tasks</button>
+        <button onclick="sendChip('Animal Welfare')" class="px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-medium rounded-full transition-colors">Animal Welfare</button>
+        <button onclick="sendChip('Education')" class="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium rounded-full transition-colors">Education</button>
+        <button onclick="sendChip('Health')" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium rounded-full transition-colors">Health</button>
+        <button onclick="sendChip('Environment')" class="px-3 py-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-medium rounded-full transition-colors">Environment</button>
+      </div>
+
+      <!-- Chat Input -->
+      <div class="bg-white border-t border-gray-200 px-6 py-4 flex-shrink-0">
+        <form onsubmit="sendMessage(event)" class="flex gap-3">
+          <input id="chatInput" type="text" placeholder="Ask about volunteering opportunities..." class="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            Send
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW: MY APPLICATIONS -->
+    <div id="view-applications" class="hidden flex flex-col h-full">
+      <div class="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <h2 class="text-lg font-bold text-gray-900">My Applications</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Track your volunteer applications</p>
+      </div>
+      <div id="applicationsContent" class="flex-1 overflow-y-auto p-6">
+        <div class="flex items-center justify-center h-32">
+          <div class="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: LEADERBOARD -->
+    <div id="view-leaderboard" class="hidden flex flex-col h-full">
+      <div class="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <h2 class="text-lg font-bold text-gray-900">Leaderboard</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Top volunteers by impact score</p>
+      </div>
+      <div id="leaderboardContent" class="flex-1 overflow-y-auto p-6">
+        <div class="flex items-center justify-center h-32">
+          <div class="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- FEEDBACK MODAL -->
+<div id="feedbackModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-40 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold text-gray-900">Rate Your Experience</h3>
+      <button onclick="closeFeedback()" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+      <div id="starRating" class="flex gap-1">
+        <span class="star-btn text-3xl text-gray-300" data-val="1" onclick="setRating(1)">&#9733;</span>
+        <span class="star-btn text-3xl text-gray-300" data-val="2" onclick="setRating(2)">&#9733;</span>
+        <span class="star-btn text-3xl text-gray-300" data-val="3" onclick="setRating(3)">&#9733;</span>
+        <span class="star-btn text-3xl text-gray-300" data-val="4" onclick="setRating(4)">&#9733;</span>
+        <span class="star-btn text-3xl text-gray-300" data-val="5" onclick="setRating(5)">&#9733;</span>
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Review</label>
+      <textarea id="feedbackReview" rows="3" placeholder="Share your experience..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"></textarea>
+    </div>
+    <div class="mb-5">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Hours Volunteered</label>
+      <input id="feedbackHours" type="number" min="0" placeholder="e.g. 4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+    </div>
+    <button onclick="submitFeedback()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm">Submit Feedback</button>
+  </div>
+</div>
+
+<script>
+const API = "https://ai-volunteer-impact.onrender.com";
+let currentUser = null;
+let chatHistory = [];
+let currentRating = 0;
+let feedbackTaskId = null;
+let currentTab = "chat";
+
+// ---- INIT ----
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = localStorage.getItem("impactUser");
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    showApp();
+  }
+  fetchStats();
+});
+
+function showApp() {
+  document.getElementById("authModal").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("userAvatar").textContent = getInitials(currentUser.name);
+  document.getElementById("userName").textContent = currentUser.name;
+  document.getElementById("impactScore").textContent = currentUser.impact_score || 0;
+  document.getElementById("hoursLogged").textContent = currentUser.hours_logged || 0;
+}
+
+function getInitials(name) {
+  return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2);
+}
+
+// ---- AUTH ----
+async function doRegister() {
+  const name = document.getElementById("authName").value.trim();
+  const email = document.getElementById("authEmail").value.trim();
+  const skills = document.getElementById("authSkills").value.trim();
+  const interests = document.getElementById("authInterests").value.trim();
+  const location = document.getElementById("authLocation").value.trim();
+  if (!name || !email) { showAuthError("Name and email are required."); return; }
+  try {
+    const res = await fetch(API + "/api/register", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({name, email, skills, interests, location})
+    });
+    const data = await res.json();
+    if (!res.ok) { showAuthError(data.detail || "Registration failed."); return; }
+    currentUser = data.user;
+    localStorage.setItem("impactUser", JSON.stringify(currentUser));
+    showApp();
+    showToast("Welcome to ImpactHub, " + name + "!", "success");
+  } catch(e) { showAuthError("Network error. Please try again."); }
+}
+
+async function doLogin() {
+  const email = document.getElementById("authEmail").value.trim();
+  if (!email) { showAuthError("Email is required to login."); return; }
+  try {
+    const res = await fetch(API + "/api/login", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({email})
+    });
+    const data = await res.json();
+    if (!res.ok) { showAuthError(data.detail || "Login failed."); return; }
+    currentUser = data.user;
+    localStorage.setItem("impactUser", JSON.stringify(currentUser));
+    showApp();
+    showToast("Welcome back, " + currentUser.name + "!", "success");
+  } catch(e) { showAuthError("Network error. Please try again."); }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById("authError");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
+
+// ---- STATS ----
+async function fetchStats() {
+  try {
+    const res = await fetch(API + "/api/stats");
+    if (!res.ok) return;
+    const data = await res.json();
+    const el = document.getElementById("statsBar");
+    if (el && data) {
+      el.textContent = (data.total_volunteers || 0) + " volunteers · " + (data.total_ngos || 0) + " NGOs";
+    }
+  } catch(e) {}
+}
+
+// ---- TABS ----
+function switchTab(tab) {
+  currentTab = tab;
+  ["chat","applications","leaderboard"].forEach(t => {
+    const view = document.getElementById("view-" + t);
+    const btn = document.getElementById("tab-" + t);
+    if (t === tab) {
+      view.classList.remove("hidden");
+      btn.classList.add("bg-indigo-50","text-indigo-700");
+      btn.classList.remove("text-gray-600","hover:bg-gray-50");
+    } else {
+      view.classList.add("hidden");
+      btn.classList.remove("bg-indigo-50","text-indigo-700");
+      btn.classList.add("text-gray-600","hover:bg-gray-50");
+    }
+  });
+  if (tab === "applications") loadApplications();
+  if (tab === "leaderboard") loadLeaderboard();
+}
+
+// ---- CHAT ----
+function sendChip(text) {
+  document.getElementById("chatInput").value = text;
+  sendMessage(null);
+}
+
+async function sendMessage(e) {
+  if (e) e.preventDefault();
+  const input = document.getElementById("chatInput");
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = "";
+  appendMessage("user", msg);
+  chatHistory.push({role:"user", content:msg});
+  const typingId = showTyping();
+  try {
+    const res = await fetch(API + "/api/chat", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        message: msg,
+        history: chatHistory.slice(-10),
+        temperature: parseFloat(document.getElementById("tempSlider").value),
+        language: document.getElementById("langSelect").value,
+        user_id: currentUser ? currentUser.id : null
+      })
+    });
+    removeTyping(typingId);
+    const data = await res.json();
+    if (data.is_error) {
+      appendMessage("bot", data.reply, true);
+    } else {
+      appendMessage("bot", data.reply);
+      if (data.matches && data.matches.length > 0) {
+        renderNGOCards(data.matches);
+      }
+    }
+    chatHistory.push({role:"assistant", content: data.reply || ""});
+  } catch(err) {
+    removeTyping(typingId);
+    appendMessage("bot", "Sorry, I could not connect to the server. Please try again.", true);
+  }
+}
+
+function appendMessage(role, text, isError) {
+  const container = document.getElementById("chatMessages");
+  const wrap = document.createElement("div");
+  wrap.className = "flex gap-3" + (role === "user" ? " justify-end" : "");
+  if (role === "bot") {
+    const avatar = document.createElement("div");
+    avatar.className = "w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0";
+    avatar.innerHTML = `<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`;
+    wrap.appendChild(avatar);
+  }
+  const bubble = document.createElement("div");
+  bubble.className = "chat-bubble px-4 py-3 rounded-2xl shadow-sm text-sm " +
+    (role === "user" ? "bg-indigo-600 text-white rounded-tr-sm" :
+     isError ? "bg-red-50 text-red-700 border border-red-200 rounded-tl-sm" :
+     "bg-white text-gray-800 rounded-tl-sm");
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+  const container = document.getElementById("chatMessages");
+  const id = "typing-" + Date.now();
+  const wrap = document.createElement("div");
+  wrap.id = id;
+  wrap.className = "flex gap-3";
+  wrap.innerHTML = `<div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div><div class="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm flex items-center gap-1"><span class="typing-dot w-2 h-2 bg-gray-400 rounded-full inline-block"></span><span class="typing-dot w-2 h-2 bg-gray-400 rounded-full inline-block"></span><span class="typing-dot w-2 h-2 bg-gray-400 rounded-full inline-block"></span></div>`;
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+// ---- NGO CARDS ----
+const CATEGORY_COLORS = {
+  "Education": "bg-blue-100 text-blue-700",
+  "Health": "bg-red-100 text-red-700",
+  "Environment": "bg-green-100 text-green-700",
+  "Animal Welfare": "bg-purple-100 text-purple-700",
+  "Community": "bg-orange-100 text-orange-700",
+  "default": "bg-gray-100 text-gray-700"
+};
+
+// Store match objects by a generated key to avoid HTML attribute encoding issues
+const matchStore = {};
+let matchStoreCounter = 0;
+
+function renderNGOCards(matches) {
+  const container = document.getElementById("chatMessages");
+  const grid = document.createElement("div");
+  grid.className = "grid grid-cols-1 gap-3 mt-2 w-full max-w-2xl";
+  matches.forEach(m => {
+    const colorClass = CATEGORY_COLORS[m.category] || CATEGORY_COLORS["default"];
+    // Store match in JS map, pass only the key to onclick
+    const key = "m" + (matchStoreCounter++);
+    matchStore[key] = m;
+    const card = document.createElement("div");
+    card.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow";
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <div>
+          <span class="text-xs font-semibold text-gray-500">${m.ngo_name || m.ngo || ""}</span>
+          <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${colorClass}">${m.category || ""}</span>
+        </div>
+        <span class="text-xs text-gray-400 flex-shrink-0">${m.location || ""}</span>
+      </div>
+      <h4 class="font-semibold text-gray-900 text-sm mb-1">${m.title || m.task_title || ""}</h4>
+      <p class="text-xs text-gray-600 mb-2">${m.description || ""}</p>
+      ${m.impact ? `<p class="text-xs text-indigo-600 font-medium mb-1">Impact: ${m.impact}</p>` : ""}
+      ${m.match_reason ? `<p class="text-xs text-green-600 mb-3">Why you: ${m.match_reason}</p>` : ""}
+      <div class="flex gap-2">
+        <button onclick="applyNow('${key}')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition-colors">Apply Now</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  container.appendChild(grid);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ---- APPLY ----
+async function applyNow(key) {
+  const match = matchStore[key];
+  if (!match) { showToast("Could not find NGO data.", "error"); return; }
+  if (!currentUser) { showToast("Please login first.", "error"); return; }
+  const taskId = match.id || match.task_id;
+  try {
+    const res = await fetch(API + "/api/apply", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({user_id: currentUser.id, task_id: taskId})
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.detail || "Application failed.", "error"); return; }
+    showToast("Applied successfully to " + (match.ngo_name || match.ngo || "NGO") + "!", "success");
+    feedbackTaskId = taskId;
+    setTimeout(() => showRateButton(match), 1500);
+  } catch(e) { showToast("Network error.", "error"); }
+}
+
+function showRateButton(match) {
+  const container = document.getElementById("chatMessages");
+  const wrap = document.createElement("div");
+  wrap.className = "flex justify-start";
+  const btn = document.createElement("button");
+  btn.className = "px-4 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-lg text-sm font-medium transition-colors";
+  btn.textContent = "Rate Experience with " + (match.ngo_name || match.ngo || "NGO");
+  btn.onclick = () => openFeedback(match.id || match.task_id);
+  wrap.appendChild(btn);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ---- APPLICATIONS ----
+async function loadApplications() {
+  if (!currentUser) return;
+  const el = document.getElementById("applicationsContent");
+  el.innerHTML = `<div class="flex items-center justify-center h-32"><div class="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full"></div></div>`;
+  try {
+    const res = await fetch(API + "/api/applications/" + currentUser.id);
+    const data = await res.json();
+    if (!data || data.length === 0) {
+      el.innerHTML = `<div class="text-center py-16 text-gray-400"><svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p class="font-medium">No applications yet</p><p class="text-sm mt-1">Start chatting to find volunteer opportunities!</p></div>`;
+      return;
+    }
+    const statusColors = {Pending:"bg-yellow-100 text-yellow-700", Accepted:"bg-green-100 text-green-700", Rejected:"bg-red-100 text-red-700"};
+    let html = `<div class="space-y-3">`;
+    data.forEach(app => {
+      const sc = statusColors[app.status] || "bg-gray-100 text-gray-700";
+      const date = app.applied_at ? new Date(app.applied_at).toLocaleDateString() : "";
+      html += `<div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-semibold text-gray-900 text-sm">${app.ngo_name || app.ngo || "NGO"}</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium ${sc}">${app.status || "Pending"}</span>
             </div>
-            
-            <div class="flex gap-2">
-                <button onclick="downloadChat()" class="text-[11px] bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-full border border-gray-200 font-bold transition-all flex items-center gap-1.5 shadow-sm">
-                    📥 Download
-                </button>
-                <button onclick="clearChatHistory()" class="text-[11px] bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-full border border-red-100 font-bold transition-all flex items-center gap-1.5">
-                    🗑️ Reset
-                </button>
+            <p class="text-sm text-gray-600 mt-0.5">${app.task_title || app.role || ""}</p>
+            <div class="flex items-center gap-3 mt-1">
+              ${app.category ? `<span class="text-xs text-gray-400">${app.category}</span>` : ""}
+              ${date ? `<span class="text-xs text-gray-400">Applied ${date}</span>` : ""}
             </div>
-        </header>
+          </div>
+          ${app.status === "Accepted" ? `<button onclick="openFeedback(${app.task_id})" class="flex-shrink-0 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium rounded-lg transition-colors">Submit Feedback</button>` : ""}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<p class="text-red-500 text-sm p-4">Failed to load applications.</p>`;
+  }
+}
 
-        <div id="chat-box" class="flex-1 overflow-y-auto p-8 space-y-6 flex flex-col pb-40"></div>
+// ---- LEADERBOARD ----
+async function loadLeaderboard() {
+  const el = document.getElementById("leaderboardContent");
+  el.innerHTML = `<div class="flex items-center justify-center h-32"><div class="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full"></div></div>`;
+  try {
+    const res = await fetch(API + "/api/leaderboard");
+    const data = await res.json();
+    if (!data || data.length === 0) {
+      el.innerHTML = `<p class="text-gray-400 text-center py-8">No leaderboard data yet.</p>`;
+      return;
+    }
+    const top10 = data.slice(0,10);
+    const rankIcons = ["🥇","��","🥉"];
+    let html = `<div class="space-y-2">`;
+    top10.forEach((v, i) => {
+      const isMe = currentUser && (v.id === currentUser.id || v.name === currentUser.name);
+      const rowClass = isMe ? "bg-indigo-50 border-indigo-200" : "bg-white border-gray-100";
+      const rank = i < 3 ? rankIcons[i] : (i+1);
+      html += `<div class="flex items-center gap-4 p-3 rounded-xl border ${rowClass} shadow-sm">
+        <div class="w-8 text-center font-bold text-gray-500 text-sm">${rank}</div>
+        <div class="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm flex-shrink-0">${(v.name||"?").split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2)}</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-gray-900 text-sm truncate">${v.name || "Volunteer"}${isMe ? " (You)" : ""}</div>
+          <div class="text-xs text-gray-400">${v.location || ""}</div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <div class="font-bold text-indigo-600 text-sm">${v.impact_score || 0}</div>
+          <div class="text-xs text-gray-400">${v.hours_logged || 0}h</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<p class="text-red-500 text-sm p-4">Failed to load leaderboard.</p>`;
+  }
+}
 
-        <footer class="absolute bottom-0 w-full p-6 bg-gradient-to-t from-white via-white to-transparent">
-            <div class="max-w-4xl mx-auto">
-                <div class="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
-                    <button onclick="useChip('Find weekend opportunities')" class="shrink-0 px-4 py-2 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-600 hover:border-indigo-400 hover:text-indigo-600 transition-all shadow-sm">🗓️ Weekend Tasks</button>
-                    <button onclick="useChip('Help at an animal shelter')" class="shrink-0 px-4 py-2 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-600 hover:border-indigo-400 hover:text-indigo-600 transition-all shadow-sm">🐕 Animal Welfare</button>
-                    <button onclick="useChip('Teach underprivileged kids')" class="shrink-0 px-4 py-2 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-600 hover:border-indigo-400 hover:text-indigo-600 transition-all shadow-sm">📚 Education</button>
-                </div>
+// ---- FEEDBACK ----
+function openFeedback(taskId) {
+  feedbackTaskId = taskId;
+  currentRating = 0;
+  document.getElementById("feedbackReview").value = "";
+  document.getElementById("feedbackHours").value = "";
+  updateStars(0);
+  document.getElementById("feedbackModal").classList.remove("hidden");
+}
 
-                <form id="chat-form" class="flex gap-3 bg-white p-2 rounded-2xl shadow-2xl border border-gray-100" onsubmit="sendMessage(event)">
-                    <input type="text" id="user-input" class="flex-1 bg-transparent text-gray-800 px-6 py-4 outline-none text-sm font-medium" placeholder="Ask anything about volunteering..." autocomplete="off">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 rounded-xl flex justify-center items-center shadow-lg transition-transform hover:scale-105 active:scale-95">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M3.478 2.404a.75.75 0 00-.926.941l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.404z" /></svg>
-                    </button>
-                </form>
-            </div>
-        </footer>
-    </main>
+function closeFeedback() {
+  document.getElementById("feedbackModal").classList.add("hidden");
+}
 
-    <script>
-        let chatHistory = JSON.parse(localStorage.getItem('impactChatHistory')) || [];
-        const chatBox = document.getElementById("chat-box");
+function setRating(val) {
+  currentRating = val;
+  updateStars(val);
+}
 
-        function renderHistory() {
-            chatBox.innerHTML = "";
-            if(chatHistory.length === 0) {
-                chatBox.innerHTML = `<div class="flex items-start gap-4 animate-fade"><div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 font-bold">AI</div><div class="bg-white border border-gray-100 p-5 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-700 max-w-[80%] leading-relaxed font-medium">Hello! I am your <b>AI Volunteer Matchmaker</b>. I can help you find NGOs based on your skills and location. What would you like to do today?</div></div>`;
-                return;
-            }
-            chatHistory.forEach(msg => {
-                const isUser = msg.role === 'user';
-                chatBox.innerHTML += `
-                <div class="flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade">
-                    <div class="${isUser ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white text-gray-700 border border-gray-100 shadow-sm whitespace-pre-wrap'} p-5 rounded-2xl ${isUser ? 'rounded-br-none' : 'rounded-tl-none'} text-sm max-w-[80%] shadow-lg leading-relaxed font-medium">
-                        ${msg.text}
-                    </div>
-                </div>`;
-            });
-            scrollToBottom();
-        }
+function updateStars(val) {
+  document.querySelectorAll(".star-btn").forEach(s => {
+    const sv = parseInt(s.dataset.val);
+    s.style.color = sv <= val ? "#f59e0b" : "#d1d5db";
+  });
+}
 
-        function useChip(text) {
-            document.getElementById('user-input').value = text;
-            sendMessage(new Event('submit'));
-        }
+async function submitFeedback() {
+  if (!currentUser) { showToast("Please login first.", "error"); return; }
+  if (!currentRating) { showToast("Please select a rating.", "error"); return; }
+  const review = document.getElementById("feedbackReview").value.trim();
+  const hours = parseFloat(document.getElementById("feedbackHours").value) || 0;
+  try {
+    const res = await fetch(API + "/api/feedback", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({user_id: currentUser.id, task_id: feedbackTaskId, rating: currentRating, review, hours_volunteered: hours})
+    });
+    if (res.ok) {
+      closeFeedback();
+      showToast("Feedback submitted! Thank you.", "success");
+      if (hours > 0) {
+        currentUser.hours_logged = (currentUser.hours_logged || 0) + hours;
+        document.getElementById("hoursLogged").textContent = currentUser.hours_logged;
+        localStorage.setItem("impactUser", JSON.stringify(currentUser));
+      }
+    } else {
+      const d = await res.json();
+      showToast(d.detail || "Feedback failed.", "error");
+    }
+  } catch(e) { showToast("Network error.", "error"); }
+}
 
-        function downloadChat() {
-            if(chatHistory.length === 0) return alert("Nothing to download!");
-            const content = chatHistory.map(m => `${m.role.toUpperCase()}: ${m.text}`).join('\n\n');
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'NGO-Chat-Report.txt'; a.click();
-        }
+// ---- TOAST ----
+function showToast(msg, type) {
+  const container = document.getElementById("toastContainer");
+  const toast = document.createElement("div");
+  const colors = {success:"bg-green-600", error:"bg-red-600", info:"bg-indigo-600"};
+  toast.className = `toast flex items-center gap-2 px-4 py-3 rounded-xl text-white text-sm font-medium shadow-lg ${colors[type]||colors.info}`;
+  const icons = {success:"M5 13l4 4L19 7", error:"M6 18L18 6M6 6l12 12", info:"M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"};
+  toast.innerHTML = `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${icons[type]||icons.info}"/></svg><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity="0"; toast.style.transition="opacity .3s"; setTimeout(()=>toast.remove(),300); }, 3000);
+}
 
-        function clearChatHistory() {
-            if(confirm("Wipe all data?")) { localStorage.removeItem('impactChatHistory'); chatHistory = []; renderHistory(); }
-        }
+// ---- CHAT UTILS ----
+function downloadChat() {
+  const msgs = document.getElementById("chatMessages").innerText;
+  const blob = new Blob([msgs], {type:"text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "impacthub-chat.txt";
+  a.click();
+}
 
-        async function sendMessage(event) {
-            if (event) event.preventDefault();
-            const inputField = document.getElementById("user-input");
-            const userText = inputField.value.trim();
-            if (!userText) return;
+function resetChat() {
+  chatHistory = [];
+  const container = document.getElementById("chatMessages");
+  container.innerHTML = `<div class="flex gap-3"><div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div><div class="chat-bubble bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm"><p class="text-sm text-gray-800">Chat reset. How can I help you find volunteer opportunities today?</p></div></div>`;
+}
 
-            chatHistory.push({ role: 'user', text: userText });
-            renderHistory();
-            inputField.value = "";
-
-            const temp = parseFloat(document.getElementById("tempSlider").value) || 0.7;
-            const lang = document.getElementById("langSelect").value || "English";
-
-            try {
-                const response = await fetch("https://ai-volunteer-impact.onrender.com/api/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        message: userText,
-                        history: chatHistory.map(m => ({ 
-                            role: m.role === 'user' ? 'user' : 'model', 
-                            content: m.text.includes('<div') ? "NGO Match results" : m.text // Clean history
-                        })),
-                        temperature: temp,
-                        language: lang
-                    })
-                });
-
-                const data = await response.json();
-                let cardsHtml = `<div class="text-[10px] font-bold text-indigo-500 mb-2 uppercase tracking-widest">${data.reply}</div>`;
-                
-                data.matches.forEach(m => {
-                    cardsHtml += `
-                    <div class="bg-white/40 border border-gray-100 p-4 rounded-xl mb-4 shadow-sm text-left">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-bold text-indigo-900">${m.ngo_name}</h4>
-                            <span class="bg-indigo-600 text-white text-[8px] font-bold px-2 py-0.5 rounded-full">${m.category}</span>
-                        </div>
-                        <p class="text-[11px] font-bold text-gray-700">${m.title}</p>
-                        <p class="text-[10px] text-gray-500 mt-2 italic">"${m.description}"</p>
-                        <div class="mt-4 flex justify-between items-center pt-2 border-t border-gray-50">
-                            <div class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded">🎯 IMPACT: ${m.impact}</div>
-                            <button class="bg-indigo-900 text-white text-[9px] px-4 py-2 rounded-lg font-bold">Connect</button>
-                        </div>
-                    </div>`;
-                });
-
-                chatHistory.push({ role: 'bot', text: cardsHtml });
-                localStorage.setItem('impactChatHistory', JSON.stringify(chatHistory));
-                renderHistory();
-
-            } catch (error) {
-                chatHistory.push({ role: 'bot', text: "Server error! Check backend." });
-                renderHistory();
-            }
-        }
-
-        function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
-        renderHistory();
-    </script>
+</script>
 </body>
 </html>
